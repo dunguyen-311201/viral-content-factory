@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vcf
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d vcf"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+
+    # CI-only throwaway values; no real secrets are used anywhere in CI.
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vcf
+      REDIS_URL: redis://localhost:6379
+      APP_URL: http://localhost:3000
+      API_URL: http://localhost:4000
+      LLM_PROVIDER: mock
+      TTS_PROVIDER: mock
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install (also generates Prisma client and builds shared packages)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Validate Prisma schema and migrations
+        run: |
+          npm run db:validate
+          npx prisma migrate deploy
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Integration tests (PostgreSQL + Redis)
+        run: npm run test:integration
+
+      - name: Build
+        run: npm run build
+
+      - name: Dependency audit (production deps, high+)
+        run: npm audit --omit=dev --audit-level=high

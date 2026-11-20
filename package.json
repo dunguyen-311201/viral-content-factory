@@ -1,0 +1,50 @@
+{
+  "name": "viral-content-factory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-assisted editorial and production workspace for one operator (modular monolith).",
+  "workspaces": [
+    "packages/shared",
+    "packages/ai",
+    "apps/api",
+    "apps/worker",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "postinstall": "npm run db:generate && npm run build:packages",
+    "build:packages": "npm run build -w @vcf/shared -w @vcf/ai",
+    "build": "npm run build:packages && npm run build -w @vcf/api -w @vcf/worker -w @vcf/web",
+    "dev:api": "npm run dev -w @vcf/api",
+    "dev:worker": "npm run dev -w @vcf/worker",
+    "dev:web": "npm run dev -w @vcf/web",
+    "lint": "eslint .",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:integration": "npm run test:integration --workspaces --if-present",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "services:up": "docker compose up -d",
+    "services:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.39.0",
+    "jest": "^29.7.0",
+    "prisma": "~6.19.0",
+    "ts-jest": "^29.4.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.33",
+    "effect": "^3.22.5",
+    "deepmerge-ts": "^8.0.2"
+  }
+}

@@ -52,7 +52,27 @@ MEDIA_STORAGE_DRIVER=local
 MEDIA_STORAGE_PATH=./storage/media
 MONTHLY_BUDGET_VND=3000000
 APP_TIMEZONE=Asia/Ho_Chi_Minh
+# Added in Sprint 0
+LOG_LEVEL=info
+API_PORT=4000
+WORKER_HEALTH_PORT=4001
+WORKER_CONCURRENCY=2
+QUEUE_PREFIX=vcf
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=vcf
 ```
+
+Validation rules (Sprint 0): `DATABASE_URL` must be a `postgresql://` URL, and `REDIS_URL` must be a `redis://` URL. `LLM_PROVIDER` and `TTS_PROVIDER` accept only `mock`. In production, `AUTH_SECRET` must be at least 32 characters and not the placeholder. Empty values fall back to defaults. `.env` is loaded from the repository root, and real environment variables take precedence.
+
+## Health endpoints
+| Process | Liveness | Readiness (dependency status; 503 when degraded) |
+| --- | --- | --- |
+| API | `GET /api/v1/health/live` | `GET /api/v1/health` (database, redis) |
+| Worker | `GET :4001/health/live` | `GET :4001/health` (database, redis, queue) |
+| Web | `GET /api/health` | status page `/` shows API dependency status |
+
+The development-only `POST /api/v1/diagnostics/mock-ai-jobs` endpoint is not registered when `NODE_ENV=production`.
 
 Never commit real values. `.env.example` must contain placeholders only.
 
@@ -62,7 +82,7 @@ Never commit real values. `.env.example` must contain placeholders only.
 - Start PostgreSQL and Redis with Docker Compose.
 - Install dependencies.
 - Run Prisma migrations.
-- Seed a local operator and safe demo data.
+- Seed a local operator and safe demo data (from Sprint 1, when the first tables exist).
 - Start web, API, and worker.
 - Verify health endpoints and a mock AI job.
 
