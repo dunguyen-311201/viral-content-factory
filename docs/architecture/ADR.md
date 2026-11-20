@@ -52,11 +52,11 @@
 **Decision:** Use a secure single-operator authentication approach; do not build team/RBAC complexity in MVP.  
 **Open choice:** Decide between managed auth and local credentials before Sprint 1 implementation. Password-based auth requires secure hashing, session handling, rate limits, and recovery strategy.
 
-## ADR-011 — npm workspaces monorepo and pinned framework majors
+## ADR-011 — pnpm workspaces monorepo and pinned framework majors
 **Status:** Accepted (Sprint 0)  
-**Decision:** Use plain npm workspaces (`apps/*`, `packages/*`) with no Nx/Turborepo. Node 22 LTS. Framework majors pinned to Next.js 15, NestJS 11, Prisma 6, BullMQ 5, TypeScript 5.9, zod 4, Jest 29, ESLint 9. Shared code lives in `packages/shared` (env, logging, correlation, health, queue names) and `packages/ai` (provider interfaces and mocks), compiled to CommonJS by `tsc`.  
-**Context:** One operator and a small codebase. npm ships with Node, so there is no extra tool to install on Windows. Newer majors (Next 16, Prisma 7, TypeScript 7) exist but carry migration risk for no Sprint 0 benefit.  
-**Consequences:** `npm install` runs `prisma generate` and builds `packages/*` in `postinstall`. Upgrading a framework major is a deliberate, separately tested change. `package.json#overrides` patches transitive advisories (postcss, effect, deepmerge-ts); remove each override once the parent package ships the fix.
+**Decision:** Use plain pnpm workspaces (`pnpm-workspace.yaml`: `apps/*`, `packages/*`) with no Nx/Turborepo. pnpm is pinned via `packageManager` (Corepack). Node 22 LTS. Framework majors pinned to Next.js 15, NestJS 11, Prisma 6, BullMQ 5, TypeScript 5.9, zod 4, Jest 29, ESLint 9. Shared code lives in `packages/shared` (env, logging, correlation, health, queue names) and `packages/ai` (provider interfaces and mocks), compiled to CommonJS by `tsc`.  
+**Context:** One operator and a small codebase. Sprint 0 first used npm workspaces; the Project Owner chose pnpm after a broken npm lockfile, because pnpm's strict, content-addressed install and lockfile are more reliable for workspaces. Newer majors (Next 16, Prisma 7, TypeScript 7) exist but carry migration risk for no Sprint 0 benefit.  
+**Consequences:** `pnpm install` runs `prisma generate` and builds `packages/*` in `postinstall`. Upgrading a framework major is a deliberate, separately tested change. `pnpm-workspace.yaml#overrides` patches transitive advisories (postcss, effect, deepmerge-ts); remove each override once the parent package ships the fix. pnpm 10 only runs install scripts for packages listed in `onlyBuiltDependencies`.
 
 ## ADR-012 — Validated configuration, structured logs and correlation IDs
 **Status:** Accepted (Sprint 0)  

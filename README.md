@@ -20,7 +20,8 @@ Viral Content Factory turns topic signals and permitted source material into ori
 ## Local development
 
 ### Prerequisites
-- **Node.js 22 LTS** (`>= 22.12`; see `.nvmrc`) and npm 10+.
+- **Node.js 22 LTS or newer** (`>= 22.12`; see `.nvmrc`).
+- **pnpm 10**: run `corepack enable` once (Corepack ships with Node), or `npm install -g pnpm@10`. The exact version is pinned in `package.json#packageManager`.
 - **Docker Desktop** (or Docker Engine) with Docker Compose v2.
 - Free local ports: 3000 (web), 4000 (API), 4001 (worker health), 5432 (PostgreSQL), 6379 (Redis).
 
@@ -36,15 +37,15 @@ docker compose up -d
 docker compose ps               # both services should become "healthy"
 
 # 3. Dependencies (also generates the Prisma client and builds packages/*)
-npm install
+pnpm install
 
 # 4. Database migrations (none yet in Sprint 0; safe to run)
-npm run db:migrate
+pnpm db:migrate
 
 # 5. Start each app in its own terminal
-npm run dev:api                 # http://localhost:4000/api/v1/health
-npm run dev:worker              # http://localhost:4001/health
-npm run dev:web                 # http://localhost:3000
+pnpm dev:api                 # http://localhost:4000/api/v1/health
+pnpm dev:worker              # http://localhost:4001/health
+pnpm dev:web                 # http://localhost:3000
 ```
 
 ### Verify it works
@@ -70,13 +71,13 @@ On Windows PowerShell, use `curl.exe` instead of `curl`, or use `Invoke-RestMeth
 ### Commands
 | Command | What it does |
 | --- | --- |
-| `npm run lint` | ESLint across the whole repo |
-| `npm run typecheck` | `tsc --noEmit` in every workspace |
-| `npm test` | Unit tests (no services needed) |
-| `npm run test:integration` | Integration tests against real PostgreSQL + Redis (`docker compose up -d` first) |
-| `npm run build` | Production build of packages, API, worker and web |
-| `npm run db:validate` / `db:migrate` / `db:deploy` | Prisma schema validation / dev migrations / apply migrations |
-| `npm run services:up` / `services:down` | Start / stop PostgreSQL and Redis |
+| `pnpm lint` | ESLint across the whole repo |
+| `pnpm typecheck` | `tsc --noEmit` in every workspace |
+| `pnpm test` | Unit tests (no services needed) |
+| `pnpm test:integration` | Integration tests against real PostgreSQL + Redis (`docker compose up -d` first) |
+| `pnpm build` | Production build of packages, API, worker and web |
+| `pnpm db:validate` / `db:migrate` / `db:deploy` | Prisma schema validation / dev migrations / apply migrations |
+| `pnpm services:up` / `services:down` | Start / stop PostgreSQL and Redis |
 
 ### Repository layout
 ```text
@@ -102,8 +103,10 @@ docker-compose.yml   PostgreSQL 16 + Redis 7, bound to 127.0.0.1 only
 | `/api/v1/health` returns 503 with `redis: down` | Run `docker compose up -d redis` and check `REDIS_URL`. |
 | `port is already allocated` from Docker | Another Postgres or Redis is already running. Stop it, or set `POSTGRES_PORT` / `REDIS_PORT` in `.env` and update `DATABASE_URL` / `REDIS_URL` to match. |
 | `EADDRINUSE` for 3000/4000/4001 | Change `API_PORT` / `WORKER_HEALTH_PORT`, or stop the other process. |
-| `Cannot find module '@vcf/shared'` or `@prisma/client did not initialize` | Run `npm install` again (its postinstall builds `packages/*` and runs `prisma generate`), or run `npm run build:packages && npm run db:generate`. |
-| Mock job stays `waiting` | The worker is not running. Start `npm run dev:worker` and check `http://localhost:4001/health`. |
+| `Cannot find module '@vcf/shared'` or `@prisma/client did not initialize` | Run `pnpm install` again (its postinstall builds `packages/*` and runs `prisma generate`), or run `pnpm build:packages && pnpm db:generate`. |
+| `Cannot find module 'commander'` (or another module) after switching from npm | Remove the old npm install: delete `node_modules` and `apps/*/node_modules`, delete `package-lock.json` if present, then `pnpm install`. |
+| `'pnpm' is not recognized` | Run `corepack enable` (may need an admin terminal on Windows), or `npm install -g pnpm@10`. |
+| Mock job stays `waiting` | The worker is not running. Start `pnpm dev:worker` and check `http://localhost:4001/health`. |
 | Integration tests fail to connect | Start the services first: `docker compose up -d`. |
 | Reset local data | `docker compose down -v` deletes the local PostgreSQL and Redis volumes. **This cannot be undone.** |
 

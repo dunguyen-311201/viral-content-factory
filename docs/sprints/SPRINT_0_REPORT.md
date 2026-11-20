@@ -8,7 +8,7 @@ Every Sprint 0 acceptance criterion passes locally:
 | Acceptance criterion | Evidence |
 | --- | --- |
 | `docker compose up -d` starts PostgreSQL and Redis | Both containers report `healthy` (pg_isready / redis-cli ping healthchecks) |
-| Web, API and worker start locally | `npm run dev:api`, `dev:worker` and `dev:web` are all up; status page shows "All systems ready" |
+| Web, API and worker start locally | `pnpm dev:api`, `dev:worker` and `dev:web` are all up; status page shows "All systems ready" |
 | API health endpoint reports dependency status | `GET /api/v1/health` → 200 with `database`/`redis` `up`; 503 `degraded` when Redis is down (integration-tested) |
 | Environment validation fails fast with actionable errors | Bad config → exit 1 with one line per variable and a fix hint (unit-tested; manually verified) |
 | CI runs lint/typecheck/tests | `.github/workflows/ci.yml`: lint, typecheck, Prisma validate + migrate deploy, unit, integration, build, prod dependency audit |
@@ -16,7 +16,7 @@ Every Sprint 0 acceptance criterion passes locally:
 | `.env` ignored; `.env.example` placeholders only | `.gitignore` ignores `.env` and `.env.*` (except the example); no real values anywhere |
 
 ## Architecture choices
-- **Modular monolith, npm workspaces** (ADR-011): `apps/api` (NestJS 11), `apps/worker` (plain Node + BullMQ 5), `apps/web` (Next.js 15), `packages/shared`, `packages/ai`. No Nx or Turborepo.
+- **Modular monolith, pnpm workspaces** (ADR-011; switched from npm at the Project Owner's request after a broken npm lockfile): `apps/api` (NestJS 11), `apps/worker` (plain Node + BullMQ 5), `apps/web` (Next.js 15), `packages/shared`, `packages/ai`. No Nx or Turborepo.
 - **Config** (ADR-012): zod schemas per process. `LLM_PROVIDER`/`TTS_PROVIDER` accept only `mock`, which enforces "no paid providers" in code. Production requires a strong `AUTH_SECRET`.
 - **Logging and tracing**: pino JSON logs with secret redaction. `x-correlation-id` is validated or generated per request and echoed back, carried via AsyncLocalStorage, put into job payloads and restored in the worker. Request logs record method, path, status and duration only, never bodies or query strings.
 - **Errors**: one global filter returns `{ code, message, details?, correlationId }`. 5xx details go to logs, not to clients.
@@ -30,14 +30,14 @@ Every Sprint 0 acceptance criterion passes locally:
 | Command | Result |
 | --- | --- |
 | `docker compose up -d` | postgres and redis healthy |
-| `npm install` | OK; postinstall ran `prisma generate` and built packages |
-| `npm run lint` | 0 problems |
-| `npm run typecheck` | 0 errors |
-| `npm test` | 48 passed (shared 24, ai 6, api 9, worker 4, web 5) |
-| `npm run test:integration` | 8 passed (api 6, worker 2) |
-| `npx prisma validate` / `migrate dev` / `migrate deploy` | valid / nothing to migrate |
-| `npm run build` | OK (Next.js production build included) |
-| `npm audit --omit=dev --audit-level=high` | 0 vulnerabilities (after overrides, see ADR-011) |
+| `pnpm install` | OK; postinstall ran `prisma generate` and built packages |
+| `pnpm lint` | 0 problems |
+| `pnpm typecheck` | 0 errors |
+| `pnpm test` | 48 passed (shared 24, ai 6, api 9, worker 4, web 5) |
+| `pnpm test:integration` | 8 passed (api 6, worker 2) |
+| `pnpm exec prisma validate` / `migrate dev` / `migrate deploy` | valid / nothing to migrate |
+| `pnpm build` | OK (Next.js production build included) |
+| `pnpm audit --prod --audit-level high` | 0 vulnerabilities (after overrides, see ADR-011) |
 | Manual smoke: start all three apps, curl health endpoints, enqueue a mock job | 200s, job `completed`, same correlation ID in API and worker logs |
 | Manual fail-fast: bad `DATABASE_URL`, `REDIS_URL`, `LLM_PROVIDER=openai` | exit 1 with three actionable lines |
 
@@ -48,7 +48,7 @@ Every Sprint 0 acceptance criterion passes locally:
 - Apps run on the host, not in Compose. Containerizing the apps is deferred until deployment work.
 - `test:e2e` does not exist yet, since there is no critical workflow to test until Sprint 4–5.
 - Dependency overrides for postcss, effect and deepmerge-ts must be revisited when Next/Prisma ship fixes.
-- Verified on Linux (CI-equivalent). Windows uses the same npm scripts (no shell-specific syntax), but has not been run on Windows by the agent.
+- Verified on Linux (CI-equivalent). Windows uses the same pnpm scripts (no shell-specific syntax), but has not been run on Windows by the agent.
 
 ## Recommended Sprint 1 tasks (not started; awaiting Project Owner go-ahead)
 1. Decide authentication (ADR-010) and implement single-operator auth plus the `users` table.
