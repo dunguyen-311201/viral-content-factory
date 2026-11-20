@@ -3,27 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "description": "AI-assisted editorial and production workspace for one operator (modular monolith).",
-  "workspaces": [
-    "packages/shared",
-    "packages/ai",
-    "apps/api",
-    "apps/worker",
-    "apps/web"
-  ],
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.12.0",
+    "pnpm": ">=10"
   },
   "scripts": {
-    "postinstall": "npm run db:generate && npm run build:packages",
-    "build:packages": "npm run build -w @vcf/shared -w @vcf/ai",
-    "build": "npm run build:packages && npm run build -w @vcf/api -w @vcf/worker -w @vcf/web",
-    "dev:api": "npm run dev -w @vcf/api",
-    "dev:worker": "npm run dev -w @vcf/worker",
-    "dev:web": "npm run dev -w @vcf/web",
+    "postinstall": "pnpm run db:generate && pnpm run build:packages",
+    "build:packages": "pnpm --filter @vcf/shared --filter @vcf/ai run build",
+    "build": "pnpm run build:packages && pnpm --filter @vcf/api --filter @vcf/worker --filter @vcf/web run build",
+    "dev:api": "pnpm --filter @vcf/api run dev",
+    "dev:worker": "pnpm --filter @vcf/worker run dev",
+    "dev:web": "pnpm --filter @vcf/web run dev",
     "lint": "eslint .",
-    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "test:integration": "npm run test:integration --workspaces --if-present",
+    "typecheck": "pnpm run build:packages && pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "test:integration": "pnpm -r --workspace-concurrency=1 run test:integration",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
@@ -33,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
+    "@prisma/client": "~6.19.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.0",
     "eslint": "^9.39.0",
@@ -42,9 +37,5 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.0"
   },
-  "overrides": {
-    "postcss": "^8.5.33",
-    "effect": "^3.22.5",
-    "deepmerge-ts": "^8.0.2"
-  }
+  "packageManager": "pnpm@10.28.0"
 }

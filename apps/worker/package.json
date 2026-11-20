@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@prisma/client": "~6.19.0",
-    "@vcf/ai": "0.1.0",
-    "@vcf/shared": "0.1.0",
+    "@vcf/ai": "workspace:*",
+    "@vcf/shared": "workspace:*",
     "bullmq": "^5.60.0",
     "ioredis": "^5.8.0"
   },
