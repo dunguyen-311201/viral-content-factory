@@ -2,7 +2,7 @@
 
 These are deliberately left open where the prior brief did not establish a final choice. Claude Code should not invent answers.
 
-1. Authentication: managed auth provider or local single-operator credentials?
+1. Authentication: managed auth provider or local single-operator credentials? **Needed before Sprint 1** (ADR-010). Sprint 0 ships no auth; only health and the dev-only diagnostics endpoint exist.
 2. LLM provider/model: which provider and monthly hard limit?
 3. TTS provider/voice: which Vietnamese voice, and is commercial use permitted under its terms?
 4. Brand identity: final name, logo, font, colors, and voice style?

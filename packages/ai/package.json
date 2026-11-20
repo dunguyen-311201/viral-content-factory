@@ -1,0 +1,13 @@
+{
+  "name": "@vcf/ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LLM and TTS provider interfaces with mock providers. Real providers require Project Owner approval.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "jest"
+  }
+}

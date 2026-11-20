@@ -1,0 +1,13 @@
+// Prisma schema for Viral Content Factory.
+// Sprint 0 intentionally defines no business tables. Domain models
+// (users, sources, trends, ...) arrive with their sprints, each as a
+// migration. See docs/architecture/ERD.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

@@ -51,3 +51,14 @@
 **Status:** Proposed for implementation  
 **Decision:** Use a secure single-operator authentication approach; do not build team/RBAC complexity in MVP.  
 **Open choice:** Decide between managed auth and local credentials before Sprint 1 implementation. Password-based auth requires secure hashing, session handling, rate limits, and recovery strategy.
+
+## ADR-011 — npm workspaces monorepo and pinned framework majors
+**Status:** Accepted (Sprint 0)  
+**Decision:** Use plain npm workspaces (`apps/*`, `packages/*`) with no Nx/Turborepo. Node 22 LTS. Framework majors pinned to Next.js 15, NestJS 11, Prisma 6, BullMQ 5, TypeScript 5.9, zod 4, Jest 29, ESLint 9. Shared code lives in `packages/shared` (env, logging, correlation, health, queue names) and `packages/ai` (provider interfaces and mocks), compiled to CommonJS by `tsc`.  
+**Context:** One operator and a small codebase. npm ships with Node, so there is no extra tool to install on Windows. Newer majors (Next 16, Prisma 7, TypeScript 7) exist but carry migration risk for no Sprint 0 benefit.  
+**Consequences:** `npm install` runs `prisma generate` and builds `packages/*` in `postinstall`. Upgrading a framework major is a deliberate, separately tested change. `package.json#overrides` patches transitive advisories (postcss, effect, deepmerge-ts); remove each override once the parent package ships the fix.
+
+## ADR-012 — Validated configuration, structured logs and correlation IDs
+**Status:** Accepted (Sprint 0)  
+**Decision:** Every process validates its environment with zod at startup and exits with a list of actionable errors. `LLM_PROVIDER`/`TTS_PROVIDER` accept only `mock` until the Project Owner approves a provider. Logs are JSON (pino) with secret redaction. An `x-correlation-id` is accepted (when safe) or generated per request, returned in the response, stored in AsyncLocalStorage, placed in job payloads and restored by the worker, so one ID traces a request across API and worker.  
+**Consequences:** Adding a provider requires changing the env schema, which keeps the approval gate visible in code review.
